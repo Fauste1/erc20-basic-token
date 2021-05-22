@@ -35,12 +35,10 @@ contract EBT is IERC20, IERC20Metadata {
     string private _symbol;
     uint8 private _decimals;
 
-    constructor (string memory name_, string memory symbol_, uint8 decimals_, uint256 minted_) {
+    constructor (string memory name_, string memory symbol_, uint8 decimals_, uint256 _initialMint) {
         _name = name_;
         _symbol = symbol_;
         _decimals = decimals_;
-        
-        uint256 _initialMint = minted_ * decimals_;
         _mint(msg.sender, _initialMint);
 
         // set the owner of this contract ?
@@ -126,6 +124,7 @@ contract EBT is IERC20, IERC20Metadata {
     * @dev Atomically increases allowance for a particular spender of a msg.sender account
     */
     function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool success) {
+        // Might want to consider reverting if msg.sender == spender (would this save gas?)
         _approve(msg.sender, spender, _allowed[msg.sender][spender] + addedValue);
         return true;
     }
