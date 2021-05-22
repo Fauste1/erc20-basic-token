@@ -35,10 +35,9 @@ contract EBT is IERC20, IERC20Metadata {
     string private _symbol;
     uint8 private _decimals;
 
-    constructor (string memory name_, string memory symbol_, uint8 decimals_, uint256 _initialMint) {
+    constructor (string memory name_, string memory symbol_, uint256 _initialMint) {
         _name = name_;
         _symbol = symbol_;
-        _decimals = decimals_;
         _mint(msg.sender, _initialMint);
 
         // set the owner of this contract ?
@@ -62,7 +61,7 @@ contract EBT is IERC20, IERC20Metadata {
     * @dev Returns the number of decimals of the token
     */
     function decimals() public view virtual override returns (uint8) {
-        return _decimals;
+        return 18;
     }
 
     /**
