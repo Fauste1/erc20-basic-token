@@ -35,9 +35,10 @@ contract EBT is IERC20, IERC20Metadata {
     string private _symbol;
     uint8 private _decimals;
 
-    constructor (string memory name_, string memory symbol_, uint256 _initialMint) {
+    constructor (string memory name_, string memory symbol_, uint256 _initialSupply) {
         _name = name_;
         _symbol = symbol_;
+        uint256 _initialMint = _initialSupply * 10 ** decimals();
         _mint(msg.sender, _initialMint);
 
         // set the owner of this contract ?
