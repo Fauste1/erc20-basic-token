@@ -1,15 +1,26 @@
 pragma solidity ^0.8.0;
 
 contract Exchange {
-    uint256 public EBTBalance;
-    uint8 public exchangeRate; // How many EBT you get for 1 ETH
-    uint256 public ethVault;
-
-    receive() external payable {
-
+    struct SellOrder {
+        uint256 amount;
+        address seller;
     }
     
-    function makeExchange() public payable {
-        ethVault += msg.value;
+    SellOrder[] internal sellOrders;
+    
+    constructor() {
+        for(uint i = 0; i < 5; i++) {
+            sellOrders.push(SellOrder(i*5, address(msg.sender)));
+        }
+    }
+    
+    function sellSideDepth() public view returns(uint256 totalAmount) {
+        totalAmount = 0;
+        
+        for(uint i = 0; i < sellOrders.length; i++) {
+            totalAmount += sellOrders[i].amount;    
+        }
+        
+        return totalAmount;
     }
 }
