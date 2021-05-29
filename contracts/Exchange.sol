@@ -15,6 +15,7 @@ contract Exchange {
     }
     
     function sellSideDepth() public view returns(uint256 totalAmount) {
+        // Do I not need to declare 'totalAmount' as a uint256 when it's already declared above?
         totalAmount = 0;
         
         for(uint i = 0; i < sellOrders.length; i++) {

@@ -38,7 +38,6 @@ contract EBT is IERC20, IERC20Metadata {
     constructor (string memory name_, string memory symbol_, uint256 _initialSupply) {
         _name = name_;
         _symbol = symbol_;
-        // uint256 _initialMint = _initialSupply * 10 ** decimals();
         _mint(msg.sender, _initialSupply);
 
         // set the owner of this contract ?
@@ -93,7 +92,7 @@ contract EBT is IERC20, IERC20Metadata {
     */
     function transferFrom(address from, address to, uint256 value) public virtual override returns (bool success) {
         uint256 _currentAllowance = _allowed[from][msg.sender];
-        require(_currentAllowance >= value, "ERC20: Transfer amount exceeds allowance");
+        require(_currentAllowance >= value, "EBT: Transfer amount exceeds allowance");
         
         _transfer(from, to, value);
         
@@ -141,11 +140,11 @@ contract EBT is IERC20, IERC20Metadata {
     * @dev Internal function to handle transfers of given amount of the token between two addresses
     */
     function _transfer(address from, address to, uint amount) internal virtual {
-        require(from != address(0), "ERC20: transfer from the zero address");
-        require(to != address(0), "ERC20: transfer to the zero address");
+        require(from != address(0), "EBT: transfer from the zero address");
+        require(to != address(0), "EBT: transfer to the zero address");
 
         uint256 senderBalance = _balances[from];
-        require(senderBalance >= amount, "ERC20: transfer amount exceeds balance");
+        require(senderBalance >= amount, "EBT: transfer amount exceeds balance");
         unchecked {
             _balances[from] -= amount;
         }
@@ -158,8 +157,8 @@ contract EBT is IERC20, IERC20Metadata {
     * @dev Internal function to handle adjust allowances for a given spender of a given owner account
     */
     function _approve(address owner, address spender, uint value) internal virtual {
-        require(owner != address(0), "ERC20: approve from the zero address");
-        require(spender != address(0), "ERC20: approve to the zero address");
+        require(owner != address(0), "EBT: approve from the zero address");
+        require(spender != address(0), "EBT: approve to the zero address");
         
         _allowed[owner][spender] = value;
         emit Approval(owner, spender, value);
@@ -168,22 +167,22 @@ contract EBT is IERC20, IERC20Metadata {
     /**
     * @dev Internal function to mint new tokens and transfer them to a given account. Increases the total supply.
     */
-    function _mint(address account, uint256 amount) internal virtual {
-        require(account != address(0), "ERC20: mint to the zero address");
+    function _mint(address mintRecipient, uint256 amount) internal virtual {
+        require(mintRecipient != address(0), "EBT: mint to the zero address");
 
         _totalSupply += amount;
-        _balances[account] += amount;
-        emit Transfer(address(0), account, amount);
+        _balances[mintRecipient] += amount;
+        emit Transfer(address(0), mintRecipient, amount);
     }
 
     /**
     * @dev Internal function to burn existing tokens of a given account. Decreases the total token supply.
     */
     function _burn(address account, uint256 amount) internal virtual {
-        require(account != address(0), "ERC20: burn from the zero address");
+        require(account != address(0), "EBT: burn from the zero address");
 
         uint256 accountBalance = _balances[account];
-        require(accountBalance >= amount, "ERC20: burn amount exceeds balance");
+        require(accountBalance >= amount, "EBT: burn amount exceeds balance");
         unchecked {
             _balances[account] = accountBalance - amount;
         }
