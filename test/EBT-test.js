@@ -2,8 +2,11 @@ const EBT   = artifacts.require('EBT')
 const utils = require('./helpers/utils')
 
 contract('EBT', (accounts) => {
+    // Deployment variables
     let     [alice, bob]        = accounts
     let     contractInstance
+    const   tokenName               = 'ERC20 Basic Token'
+    const   tokenSymbol             = 'EBT'
     
     // Amounts for tests
     const   allowed             = '1000000000000000000'         // 1 token with 18 decimals
@@ -12,15 +15,30 @@ contract('EBT', (accounts) => {
 
     beforeEach(async () => {
         // We do not specify the contract deployer address, so the test defaults to accounts[0]
-        contractInstance = await EBT.new('Erc20 Basic Token', 'EBT', BigInt(initialMint))
+        contractInstance = await EBT.new(tokenName, tokenSymbol, BigInt(initialMint), { from: alice })
     })
 
-    it('should mint an initial supply', async () => {
+    it(`should return correct token name`, async () => {
+        const _tokenName = await contractInstance.name()
+        expect(tokenName).to.equal(_tokenName)
+    })
+    
+    it(`should return correct token symbol`, async () => {
+        const _tokenSymbol = await contractInstance.symbol()
+        expect(tokenSymbol).to.equal(_tokenSymbol)
+    })
+
+    it(`should return correct decimals`, async () => {
+        const _decimals = await contractInstance.decimals()
+        expect(`18`).to.equal(_decimals.toString())
+    })
+
+    it('should mint entire specified initial supply', async () => {
         const totalSupply = await contractInstance.totalSupply()
         expect(totalSupply.toString()).to.equal(initialMint)
     })
 
-    it('should deposit entire initial mint to contract deployer', async () => {
+    it('should deposit entire initial supply to contract deployer', async () => {
         const balance = await contractInstance.balanceOf(alice)
         expect(balance.toString()).to.equal(initialMint)
     })
@@ -39,23 +57,36 @@ contract('EBT', (accounts) => {
         expect(endBalance.toString()).to.equal(expectedBalance.toString())
     })
 
-    // should not allow a 3rd party to initiate a transfer w/o approval
     it(`should not allow 3rd party spending without allowance`, async () => {
         const initialBalance = await contractInstance.balanceOf(alice)
-        await utils.shouldThrow(contractInstance.transferFrom(alice, bob, BigInt(transferAmount), { from: bob })) 
+        await utils.shouldThrow(contractInstance.transferFrom(alice, bob, BigInt(transferAmount), { from: bob }))
         const finalBalance = await contractInstance.balanceOf(alice)
         expect(finalBalance.toString()).to.equal(initialBalance.toString())
     })
 
-    // should allow a spending approval
     it(`should allow user to set an allowance for a 3rd party`, async () => {
-        const result = await contractInstance.approve(bob, BigInt(allowed))
+        const result = await contractInstance.approve(bob, BigInt(allowed), { from: alice })
         expect(result.receipt.status).to.equal(true)
         const allowance = await contractInstance.allowance(alice, bob)
         expect(allowance.toString()).to.equal(allowed)
     })
 
-    // should allow a 3rd party to initiate a transfer given a sufficient approval
+    it(`should allow a 3rd party to initiate a transfer given a sufficient approval`, async () => {
+        await contractInstance.approve(bob, BigInt(allowed), { from: alice })
+        const result = await contractInstance.transferFrom(alice, bob, BigInt(transferAmount), { from: bob })
+        const recipientBalance = await contractInstance.balanceOf(bob)
+        expect(result.receipt.status).to.equal(true)
+        expect(transferAmount).to.equal(recipientBalance.toString())
+    })
     
-    // should not allow to transfer more than what's approved
+    it(`should not allow overspending the allowance`, async () => {
+        await contractInstance.approve(bob, BigInt(allowed), { from: alice })
+        const notApprovedAmount = BigInt(transferAmount) + 1n
+        await utils.shouldThrow(contractInstance.transferFrom(alice, bob, notApprovedAmount, { from: bob }))
+    })
+
+    // Bob should have 0 balance after fresh contract deployment
+    it(`should not allow overspending of own balance`, async () => {
+        await utils.shouldThrow(contractInstance.transfer(alice, BigInt(transferAmount), { from: bob }))
+    })
 })
